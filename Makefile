@@ -37,6 +37,7 @@ isotree:
 $(LOADERISO): $(LOADERBIN)
 	mkdir -p $(BOOTPATH)
 	cp $(LOADERBIN) $(BOOTPATH)
+	cp test.txt $(BOOTPATH)
 
 	genisoimage -R -b $(BOOTLOADER)              \
 		-no-emul-boot -V CR0S -v -o os.iso $(ISODIR)
