@@ -1,5 +1,10 @@
 .code16
 
+# Segment:Offset of setup stage
+
+.set SETUP_SEGMENT,        0x0800
+.set SETUP_SEGMENT_OFFSET, 0x0000
+
 .text
 
 	.global _start
@@ -17,18 +22,9 @@ _start:
 	mov $initializing_msg, %si
 	call print_string
 
-	# int $0x13 extensions
-
-	# mov $0x41, %ah
-	# mov $0x55aa, %bx
-	# int $0x13
-	# jc .ext_not_present
-	# cmp $0xaa55, %bx
-	# jne .ext_not_present
-
 	mov $0x10, %ebx
 	mov $0x01, %ecx
-	mov $0x1000, %ax
+	mov $SETUP_SEGMENT, %ax
 	mov %ax, %es
 	xor %di, %di
 
@@ -58,7 +54,7 @@ _start:
 	call find_entry
 
 	test %ax, %ax
-	jz .path_not_found
+	jz .die
 
 	mov %ds:pvd_root_dir_rec_ext_sec(%si), %ebx
 	mov %ds:pvd_root_dir_rec_dat_len(%si), %ecx
@@ -76,7 +72,7 @@ _start:
 	call find_entry
 
 	test %ax, %ax
-	jz .next_stage_not_found
+	jz .die
 
 	mov %ds:pvd_root_dir_rec_ext_sec(%si), %ebx
 	mov %ds:pvd_root_dir_rec_dat_len(%si), %ecx
@@ -87,38 +83,9 @@ _start:
 
 	xchg %bx, %bx
 
-	# Jump to 0x00010000
+	# Jump to setup stage
 
-	jmp $0x1000, $0x0
-
-	jmp .die
-
-# .ext_not_present:
-# 	xor %ax, %ax
-# 	mov %ax, %ds
-# 
-# 	mov $ext_not_present_msg, %si
-# 	call print_string
-# 
-# 	jmp .die
-
-.path_not_found:
-	xor %ax, %ax
-	mov %ax, %ds
-
-	mov $path_not_found_msg, %si
-	call print_string
-
-	jmp .die
-
-.next_stage_not_found:
-	xor %ax, %ax
-	mov %ax, %ds
-
-	mov $next_stage_not_found_msg, %si
-	call print_string
-
-	jmp .die
+	jmp $SETUP_SEGMENT, $SETUP_SEGMENT_OFFSET
 
 .die:
 	jmp .die
@@ -139,11 +106,7 @@ _start:
 
 .set boot_dir_name_len, 4
 boot_dir: .asciz "BOOT"
-next_stage_loader: .asciz "TEST.TXT"
-
-ext_not_present_msg: .asciz "\r\nNo LBA"
-path_not_found_msg: .asciz "\r\nNo path"
-next_stage_not_found_msg: .asciz "\r\nNo stage"
+next_stage_loader: .asciz "SETUP.BIN"
 initializing_msg: .asciz "Initializing bootloader v0.1..."
 
 	. = _start + 510

@@ -108,4 +108,4 @@ dap_ptr_segm: .short 0x00000000
 dap_ptr_llba: .long  0x00000000
 dap_ptr_hlba: .long  0x00000000
 
-bios_error_msg: .asciz "\r\nError in BIOS"
+bios_error_msg: .asciz "\r\nAn error in the BIOS function occurred."

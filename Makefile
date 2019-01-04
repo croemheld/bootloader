@@ -6,19 +6,17 @@ ISODIR                                            := iso
 BOOTDIR                                           := boot
 BOOTPATH                                          := $(ISODIR)/$(BOOTDIR)
 
-LOADER                                            := loader
-LOADERBIN                                         := $(LOADER).bin
-LOADERISO                                         := $(LOADER).iso
+BOOT                                              := boot
+BOOTBIN                                           := $(BOOT).bin
 
-BOOTLOADER                                        := $(BOOTDIR)/$(LOADERBIN)
+SETUP                                             := setup
+SETUPBIN                                          := $(SETUP).bin
+
+LOADERISO                                         := $(BOOT).iso
+
+BOOTIMG                                           := $(BOOTDIR)/$(BOOTBIN)
 
 BOCHSRC                                           := bochsrc
-
-AS_FILES := $(LOADER).asm
-
-AS_OBJS  := $(patsubst %.asm, %.o, $(AS_FILES))
-
-OBJS     := $(AS_OBJS)
 
 .PHONY: all
 all: $(LOADERISO)
@@ -27,23 +25,27 @@ all: $(LOADERISO)
 clean:
 	rm -f *.o
 	rm -f *.bin
+	rm -f *.ini
 	rm -f *.iso
 	rm -rf iso/
 
+.PHONY: isotree
 isotree:
 	isoinfo -f -i os.iso
 
-
-$(LOADERISO): $(LOADERBIN)
+$(LOADERISO): $(BOOTBIN) $(SETUPBIN)
 	mkdir -p $(BOOTPATH)
-	cp $(LOADERBIN) $(BOOTPATH)
+	cp $(BOOTBIN) $(BOOTPATH)
+	cp $(SETUPBIN) $(BOOTPATH)
 	cp test.txt $(BOOTPATH)
 
-	genisoimage -R -b $(BOOTLOADER)              \
-		-no-emul-boot -V CR0S -v -o os.iso $(ISODIR)
+	genisoimage -R -b $(BOOTIMG) -no-emul-boot -V CR0S -v -o $(LOADERISO) $(ISODIR)
 
-$(LOADERBIN): $(OBJS)
-	$(LD) -T linker.ld $(AS_OBJS) -o $@
+$(BOOTBIN): $(BOOT).o
+	$(LD) -T boot.ld $(BOOT).o -o $@
+
+$(SETUPBIN): $(SETUP).o
+	$(LD) -T setup.ld $(SETUP).o -o $@
 
 %.o: %.asm
 	$(AS) $< -o $@
