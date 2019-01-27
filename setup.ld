@@ -6,10 +6,6 @@ SECTIONS
 	. = 0x8000;
 	_SETUP_START = .;
 
-	.test ALIGN(0x10) : {
-		KEEP(*(.test*))
-	}
-
 	.text ALIGN(0x10) : {
 		_TEXT_START = .;
 		*(.text*)
